@@ -13,17 +13,6 @@ pipeline {
     }
 
     stages { 
-
-        stage('Checkout') {
-            steps {
-                script {
-                    git branch: 'v0', url: env.REPO_URL 
-                    env.IMAGE_TAG = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim()
-                    echo "Используемый IMAGE_TAG: ${env.IMAGE_TAG}" 
-                }
-            }
-        }
-
         stage('Parse .env File and Fetch Secrets') {
             steps {
                 script {
@@ -51,6 +40,16 @@ pipeline {
                     }
                     
                     writeFile file: 'parsed_env', text: updatedVars.join("\n")
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                script {
+                    git branch: 'v0', url: env.REPO_URL 
+                    env.IMAGE_TAG = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim()
+                    echo "Используемый IMAGE_TAG: ${env.IMAGE_TAG}" 
                 }
             }
         }
