@@ -1,25 +1,25 @@
 pipeline {
     agent {
-        label 'RemoteAgentKolya'
+        label 'RemoteAgentTest'
     }
 
-    environment { // Окружение
-        IMAGE_NAME = 'fungicibus/inventory' // Имя образа
-        CONTAINER_NAME = 'inventory' // Имя контейнера
-        REPO_URL = 'https://github.com/fungicibus/inventory.git' // URL репозитория
-        DOCKER_HUB_REPO = 'shifter1703/fungicibus' // Репозиторий Docker Hub
-        DOCKER_CREDENTIALS_ID = 'ce217c82-26b0-4acb-b57f-71a11965e25d' // ID учетных данных Docker
-        ENV_FILE = 'dev.env' // Файл окружения
+    environment { 
+        IMAGE_NAME = 'fungicibus/inventory' 
+        CONTAINER_NAME = 'inventory' 
+        REPO_URL = 'https://github.com/fungicibus/inventory.git' 
+        DOCKER_HUB_REPO = 'shifter1703/fungicibus' 
+        DOCKER_CREDENTIALS_ID = 'ce217c82-26b0-4acb-b57f-71a11965e25d' 
+        ENV_FILE = 'dev.env' 
     }
 
-    stages { // Этапы
+    stages { 
 
-        stage('Получение кода') {
+        stage('Checkout') {
             steps {
                 script {
-                    git branch: 'v0', url: env.REPO_URL // Клонирование ветки v0
-                    env.IMAGE_TAG = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim() // Получение тега
-                    echo "Используемый IMAGE_TAG: ${env.IMAGE_TAG}" // Вывод тега
+                    git branch: 'v0', url: env.REPO_URL 
+                    env.IMAGE_TAG = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim()
+                    echo "Используемый IMAGE_TAG: ${env.IMAGE_TAG}" 
                 }
             }
         }
@@ -35,8 +35,8 @@ pipeline {
                     
                     envVars.each { line ->
                         if (line.contains("=\$")) {
-                            def key = line.split("=")[0]  // SECRET_SOURCE
-                            def secretName = "my-secret"  // Фиксированное имя секрета
+                            def key = line.split("=")[0]
+                            def secretName = "my-secret"
                             echo "Fetching secret for ${key} from path: kv/data/${secretName}"
                             def secretValue = vault path: "kv/data/${secretName}", key: "value"
                             if (secretValue != null) {
@@ -54,15 +54,15 @@ pipeline {
             }
         }
 
-        stage('Остановка и удаление существующего контейнера') {
+        stage('Stop and remove container') {
             steps {
                 script {
-                    sh "docker rm -f ${env.CONTAINER_NAME} || true" // Удаление контейнера
+                    sh "docker rm -f ${env.CONTAINER_NAME} || true"
                 }
             }
         }
 
-        stage('Сборка Docker-образа') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     sh """
@@ -73,19 +73,19 @@ pipeline {
             }
         }
 
-        stage('Запуск нового контейнера') {
+        stage('Start container') {
             steps {
                 script {
-                    sh "docker run -d --name ${env.CONTAINER_NAME} --env-file parsed_env ${env.IMAGE_NAME}:${env.IMAGE_TAG}" // Запуск контейнера
+                    sh "docker run -d --name ${env.CONTAINER_NAME} --env-file parsed_env ${env.IMAGE_NAME}:${env.IMAGE_TAG}" 
                 }
             }
         }
 
-        stage('Отправка в Docker Hub') {
+        stage('Push in Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, 
                                                  usernameVariable: 'DOCKER_HUB_USERNAME', 
-                                                 passwordVariable: 'DOCKER_HUB_PASSWORD')]) { // Учетные данные
+                                                 passwordVariable: 'DOCKER_HUB_PASSWORD')]) { 
                     script {
                         sh """
                             echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USERNAME --password-stdin
@@ -100,16 +100,16 @@ pipeline {
         }
     }
 
-    post { // Пост-условия
+    post { 
         success {
-            echo "Пайплайн успешно выполнен!" // Успешное выполнение
+            echo "The pipeline has been completed successfully!" 
         }
         failure {
-            echo "Пайплайн завершился с ошибкой. Проверьте логи для деталей." // Ошибка
+            echo "The pipeline ended with an error. Check the logs for details."
         }
         always {
-            echo "Выполнение пайплайна завершено!" // Завершение
-            cleanWs() // Очистка рабочего пространства
+            echo "Pipeline completion completed" 
+            cleanWs() 
         }
     }
 }
