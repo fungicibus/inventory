@@ -36,7 +36,7 @@ pipeline {
                     envVars.each { line ->
                         if (line.contains("=\$")) {
                             def key = line.split("=")[0]
-                            def secretName = "my-secret"
+                            def secretName = "${key}"
                             echo "Fetching secret for ${key} from path: kv/data/${secretName}"
                             def secretValue = vault path: "kv/data/${secretName}", key: "value"
                             if (secretValue != null) {
