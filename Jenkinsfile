@@ -27,8 +27,9 @@ pipeline {
         stage('Parse .env File and Fetch Secrets') {
             steps {
                 script {
-                    sh "grep -v '^#' ${env.ENV_FILE} | awk 'NF' > parsed_env"
-                    echo "Parsed environment variables from ${env.ENV_FILE}"
+                    // Извлекаем dev.env из ветки DevOps и записываем в parsed_env
+                    sh "git show DevOps:${env.ENV_FILE} | grep -v '^#' | awk 'NF' > parsed_env"
+                    echo "Parsed environment variables from ${env.ENV_FILE} (branch: DevOps)"
                     
                     def envVars = readFile('parsed_env').readLines()
                     def updatedVars = []
