@@ -1,0 +1,38 @@
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      LOG_LEVEL: 0
+      PG_RO_DSN: "postgres://admin:secretpassword@db/inventory"
+      PG_RW_DSN: "postgres://admin:secretpassword@db/inventory"
+      OPENAPI_PATH: "../modules/docs/api/inventory/v1/openapi.yaml"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ../modules/docs/api/inventory/v1:/app/api
+
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secretpassword
+      - POSTGRES_DB=inventory
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
