@@ -38,9 +38,7 @@ func registerMetrics(appVersion string, router *chi.Mux) {
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/metrics" ||
-				r.URL.Path == "/healthcheck" ||
-				strings.Contains(r.URL.Path, "swagger") {
+			if skipMonitoring(r.URL.Path) {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -61,4 +59,10 @@ func registerMetrics(appVersion string, router *chi.Mux) {
 			).Observe(duration.Seconds())
 		})
 	})
+}
+
+func skipMonitoring(urlPath string) bool {
+	return (urlPath == "/metrics" ||
+		urlPath == "/healthcheck" ||
+		strings.Contains(urlPath, "swagger"))
 }
