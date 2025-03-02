@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/http/pprof"
 
-	"github.com/feynmaz/pkg/http/middleware"
-	"github.com/feynmaz/pkg/logger"
 	"github.com/fungicibus/inventory/config"
+	"github.com/fungicibus/inventory/internal/logger"
+	"github.com/fungicibus/inventory/internal/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -47,9 +47,7 @@ func (s *Server) getRouter() *chi.Mux {
 
 	// Middleware
 	router.Use(middleware.RequestIDMiddleware)
-	router.Use(middleware.NewLoggingMiddleware(s.logger))
-	// router.Use(s.TelemetryMiddleware)
-	registerMetrics(s.cfg.AppVersion, router)
+	router.Use(middleware.NewMonitoringMiddleware(s.cfg.AppVersion, s.logger))
 
 	// Profiler
 	router.HandleFunc("/debug/pprof/", pprof.Index)

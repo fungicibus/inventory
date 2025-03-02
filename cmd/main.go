@@ -7,9 +7,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/feynmaz/pkg/logger"
 	"github.com/fungicibus/inventory/config"
 	v1 "github.com/fungicibus/inventory/internal/api/v1"
+	"github.com/fungicibus/inventory/internal/logger"
 	"github.com/fungicibus/inventory/internal/server"
 	"github.com/fungicibus/inventory/internal/storage/migrations"
 	"github.com/fungicibus/inventory/internal/storage/pg"
