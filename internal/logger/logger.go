@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -10,11 +11,12 @@ type Logger struct {
 	zerolog.Logger
 }
 
-func New() *Logger {
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
-	return &Logger{logger}
-}
+func New(level int, nonConsoleWriter io.Writer) (*Logger, error) {
+	var writer io.Writer = os.Stdout
+	if nonConsoleWriter != nil {
+		writer = zerolog.MultiLevelWriter(os.Stdout, nonConsoleWriter)
+	}
 
-func (l *Logger) SetLevel(level int) {
-	l.Logger = l.Logger.Level(zerolog.Level(level))
+	logger := zerolog.New(writer).With().Timestamp().Logger().Level(zerolog.Level(level))
+	return &Logger{logger}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 
@@ -22,16 +23,19 @@ var Commit string
 var embedMigrations embed.FS
 
 func main() {
-	log := logger.New()
-
 	version := getVersion()
 
 	cfg, err := config.GetDefault()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get config")
+		panic(fmt.Errorf("failed to get config: %w", err))
 	}
-	log.SetLevel(cfg.LogLevel)
 	cfg.AppVersion = version
+
+	vmLogs := logger.NewVictoriaLogsWriter(cfg.Log.VictoriaUrl)
+	log, err := logger.New(cfg.Log.Level, vmLogs)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get logger")
+	}
 
 	cfgContent, _ := json.Marshal(cfg)
 	log.Debug().RawJSON("config", cfgContent).Msg("config")
