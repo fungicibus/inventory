@@ -14,8 +14,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ../modules/docs/api/inventory/v1:/app/api
 
   db:
     image: postgres:17
