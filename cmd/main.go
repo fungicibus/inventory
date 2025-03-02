@@ -33,11 +33,8 @@ func main() {
 	log.SetLevel(cfg.LogLevel)
 	cfg.AppVersion = version
 
-	prettyJSON, err := json.MarshalIndent(cfg, "", "    ")
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to marshal config")
-	}
-	log.Debug().Msgf("Config: %s", string(prettyJSON))
+	cfgContent, _ := json.Marshal(cfg)
+	log.Debug().RawJSON("config", cfgContent).Msg("config")
 
 	pg, err := pg.New(cfg.Postgres)
 	if err != nil {
@@ -70,10 +67,10 @@ func getVersion() string {
 	tag, commit := Tag, Commit
 
 	if Tag == "" {
-		tag = "<unset>"
+		tag = "tag"
 	}
 	if Commit == "" {
-		commit = "<unset>"
+		commit = "commit"
 	}
 	return tag + "-" + commit
 }
