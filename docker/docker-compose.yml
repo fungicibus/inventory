@@ -10,7 +10,7 @@ services:
       LOG_LEVEL: 0
       PG_RO_DSN: "postgres://admin:secretpassword@db/inventory"
       PG_RW_DSN: "postgres://admin:secretpassword@db/inventory"
-      OPENAPI_PATH: "../modules/docs/api/inventory/v1/openapi.yaml"
+      OPENAPI_PATH: "./modules/docs/api/inventory/v1/openapi.yaml"
     depends_on:
       db:
         condition: service_healthy
