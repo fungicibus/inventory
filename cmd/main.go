@@ -64,6 +64,7 @@ func main() {
 
 	<-ctx.Done()
 	pg.Close()
+	vmLogs.Close()
 	server.Shutdown()
 }
 

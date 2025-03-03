@@ -60,8 +60,5 @@ func (w victoriaLogsWriter) Write(p []byte) (n int, err error) {
 func (w victoriaLogsWriter) Close() error {
 	close(w.queue)
 	close(w.errs)
-	for err := range w.errs {
-		return err
-	}
 	return nil
 }
