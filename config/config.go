@@ -14,8 +14,6 @@ type Config struct {
 
 	OpenapiPath string `json:"openapi_path" env:"OPENAPI_PATH"`
 	AppVersion  string `json:"app_version" env:"-"`
-
-	SecretSource string `json:"secret_source" env:"SECRET_SOURCE"`
 }
 
 type Log struct {
