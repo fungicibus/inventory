@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/feynmaz/pkg/http/middleware"
+	"github.com/fungicibus/inventory/internal/middleware"
 )
 
 func (api *API) ReadJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {

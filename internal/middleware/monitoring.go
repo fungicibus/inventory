@@ -1,17 +1,16 @@
-package server
+package middleware
 
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/fungicibus/inventory/internal/logger"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func registerMetrics(appVersion string, router *chi.Mux) {
+func NewMonitoringMiddleware(appVersion string, logger *logger.Logger) func(next http.Handler) http.Handler {
 	var (
 		version = prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "version",
@@ -36,14 +35,18 @@ func registerMetrics(appVersion string, router *chi.Mux) {
 	prometheus.MustRegister(httpRequestDuration)
 	prometheus.MustRegister(version)
 
-	router.Use(func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/metrics" ||
-				r.URL.Path == "/healthcheck" ||
-				strings.Contains(r.URL.Path, "swagger") {
+			if isExcludedFromMonitoring(r.URL.Path) {
 				next.ServeHTTP(w, r)
 				return
 			}
+			requestID := GetRequestID(r.Context())
+			logger.Info().
+				Str("requestID", requestID).
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Msg("request started")
 
 			start := time.Now()
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -59,6 +62,19 @@ func registerMetrics(appVersion string, router *chi.Mux) {
 				r.URL.Path,
 				r.Method,
 			).Observe(duration.Seconds())
+
+			logEvent := logger.Info()
+			if ww.Status() >= 400 {
+				logEvent = logger.Error()
+			}
+			logEvent.
+				Str("requestID", requestID).
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Int("status", ww.Status()).
+				Dur("duration", duration).
+				Str("userAgent", r.UserAgent()).
+				Msg("request completed")
 		})
-	})
+	}
 }

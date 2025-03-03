@@ -9,6 +9,7 @@ include .env
 DB_URL ?= $(PG_RW_DSN)
 MIGRATION_PATH ?= ./cmd/migrations
 
+
 .PHONY: migrations-status migrations-up migrations-down migrations-reset
 
 migrations-status:
@@ -22,3 +23,12 @@ migrations-down:
 
 migrations-reset:
 	goose -dir $(MIGRATION_PATH) postgres "$(DB_URL)" reset
+
+
+.PHONY: compose-up compose-down
+
+compose-up:
+	docker compose -f docker/docker-compose.yml -p inventory up 
+
+compose-down:
+	docker compose -f docker/docker-compose.yml -p inventory down 

@@ -25,6 +25,6 @@ go.work.sum
 .env
 
 # development
-.vscode
-tmp
-bin
+.vscode/
+tmp/
+bin/

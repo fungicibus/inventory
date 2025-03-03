@@ -4,12 +4,13 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 
-	"github.com/feynmaz/pkg/logger"
 	"github.com/fungicibus/inventory/config"
 	v1 "github.com/fungicibus/inventory/internal/api/v1"
+	"github.com/fungicibus/inventory/internal/logger"
 	"github.com/fungicibus/inventory/internal/server"
 	"github.com/fungicibus/inventory/internal/storage/migrations"
 	"github.com/fungicibus/inventory/internal/storage/pg"
@@ -22,22 +23,22 @@ var Commit string
 var embedMigrations embed.FS
 
 func main() {
-	log := logger.New()
-
 	version := getVersion()
 
 	cfg, err := config.GetDefault()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get config")
+		panic(fmt.Errorf("failed to get config: %w", err))
 	}
-	log.SetLevel(cfg.LogLevel)
-	cfg.AppVersion = version
+	cfg.App.Version = version
 
-	prettyJSON, err := json.MarshalIndent(cfg, "", "    ")
+	vmLogs := logger.NewVictoriaLogsWriter(cfg.Log.VictoriaUrl)
+	log, err := logger.New(cfg, vmLogs)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to marshal config")
+		log.Fatal().Err(err).Msg("failed to get logger")
 	}
-	log.Debug().Msgf("Config: %s", string(prettyJSON))
+
+	cfgContent, _ := json.Marshal(cfg)
+	log.Debug().RawJSON("config", cfgContent).Msg("config")
 
 	pg, err := pg.New(cfg.Postgres)
 	if err != nil {
@@ -63,6 +64,7 @@ func main() {
 
 	<-ctx.Done()
 	pg.Close()
+	vmLogs.Close()
 	server.Shutdown()
 }
 
@@ -70,10 +72,10 @@ func getVersion() string {
 	tag, commit := Tag, Commit
 
 	if Tag == "" {
-		tag = "<unset>"
+		tag = "tag"
 	}
 	if Commit == "" {
-		commit = "<unset>"
+		commit = "commit"
 	}
 	return tag + "-" + commit
 }
