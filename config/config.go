@@ -8,16 +8,23 @@ import (
 )
 
 type Config struct {
-	Log      Log      `json:"log" envPrefix:"LOG_"`
-	Server   Server   `json:"server" envPrefix:"SERVER_"`
-	Postgres Postgres `json:"postgres" envPrefix:"PG_"`
+	App App `json:"app" envPrefix:"APP_"`
+	Log Log `json:"log" envPrefix:"LOG_"`
 
+	Server      Server `json:"server" envPrefix:"SERVER_"`
 	OpenapiPath string `json:"openapi_path" env:"OPENAPI_PATH"`
-	AppVersion  string `json:"app_version" env:"-"`
+
+	Postgres Postgres `json:"postgres" envPrefix:"PG_"`
+}
+
+type App struct {
+	Env     string `json:"env" env:"ENV" envDefault:"dev"`
+	Name    string `json:"name" env:"NAME" envDefault:"inventory"`
+	Version string `json:"version" env:"-"`
 }
 
 type Log struct {
-	Level       int    `json:"log_level" env:"LEVEL"`
+	Level       int    `json:"level" env:"LEVEL"`
 	VictoriaUrl string `json:"victoria_url" env:"VICTORIA_URL"`
 }
 

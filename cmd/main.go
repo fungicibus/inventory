@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to get config: %w", err))
 	}
-	cfg.AppVersion = version
+	cfg.App.Version = version
 
 	vmLogs := logger.NewVictoriaLogsWriter(cfg.Log.VictoriaUrl)
 	log, err := logger.New(cfg.Log.Level, vmLogs)
