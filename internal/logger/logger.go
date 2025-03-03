@@ -17,6 +17,8 @@ func New(level int, nonConsoleWriter io.Writer) (*Logger, error) {
 		writer = zerolog.MultiLevelWriter(os.Stdout, nonConsoleWriter)
 	}
 
+	zerolog.MessageFieldName = "_msg"
+
 	logger := zerolog.New(writer).With().Timestamp().Logger().Level(zerolog.Level(level))
 	return &Logger{logger}, nil
 }
