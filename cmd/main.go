@@ -32,7 +32,7 @@ func main() {
 	cfg.App.Version = version
 
 	vmLogs := logger.NewVictoriaLogsWriter(cfg.Log.VictoriaUrl)
-	log, err := logger.New(cfg.Log.Level, vmLogs)
+	log, err := logger.New(cfg, vmLogs)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to get logger")
 	}
